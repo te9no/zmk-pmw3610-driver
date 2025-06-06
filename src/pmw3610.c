@@ -13,10 +13,12 @@
 #include <zmk/keymap.h>
 #include <zmk/events/activity_state_changed.h>
 #include "pmw3610.h"
-#include <ball_action.h>
+#include "ball_action.h"
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(pmw3610, CONFIG_PMW3610_LOG_LEVEL);
+
+static ball_motion_callback_t motion_callback = NULL;
 
 //////// Sensor initialization steps definition //////////
 // init is done in non-blocking manner (i.e., async), a //
@@ -380,10 +382,14 @@ static void pmw3610_async_init(struct k_work *work) {
     }
 }
 
+void ball_motion_register_callback(ball_motion_callback_t callback) {
+    motion_callback = callback;
+}
+
 static void process_ball_action(const struct device *dev, int16_t dx, int16_t dy) {
     struct pixart_data *data = dev->data;
     
-    if (!data->ball_action_enabled) {
+    if (!data->ball_config.enabled) {
         return;
     }
 
@@ -403,7 +409,15 @@ static void process_ball_action(const struct device *dev, int16_t dx, int16_t dy
         input_report_key(dev, data->ball_config.down.keycode, 0, true, K_NO_WAIT);
     }
 
-    ZMK_EVENT_RAISE(new_ball_motion_event(dx, dy));
+    // Simple event notification without ZMK event system
+    struct ball_motion_event evt = {
+        .dx = dx,
+        .dy = dy
+    };
+    
+    if (motion_callback) {
+        motion_callback(&evt);
+    }
 }
 
 static int pmw3610_report_data(const struct device *dev) {
@@ -499,7 +513,7 @@ static int pmw3610_report_data(const struct device *dev) {
 
         process_ball_action(dev, rx, ry);
 
-        if (!data->ball_action_enabled) {
+        if (!data->ball_config.enabled) {
             if (have_x) {
                 input_report(dev, config->evt_type, config->x_input_code, rx, !have_y, K_NO_WAIT);
             }
@@ -590,10 +604,8 @@ static int pmw3610_init(const struct device *dev) {
 
     k_work_schedule(&data->init_work, K_MSEC(async_init_delay[data->async_init_step]));
 
-    struct pixart_data *data = dev->data;
-    data->ball_action_enabled = false;
-    
-    // デフォルトのBALL_ACTION設定
+    // Initialize ball_config
+    data->ball_config.enabled = false;
     data->ball_config.up.threshold = 10;
     data->ball_config.down.threshold = 10;
     data->ball_config.left.threshold = 10;

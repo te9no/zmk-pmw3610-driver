@@ -24,3 +24,27 @@ properties:
     required: true
   force-awake:
     type: boolean
+
+  ball-action:
+    type: boolean
+    description: Enable ball action support
+    
+  ball-threshold-up:
+    type: int
+    default: 10
+    description: Threshold for upward movement
+    
+  ball-threshold-down:
+    type: int
+    default: 10
+    description: Threshold for downward movement
+    
+  ball-threshold-left:
+    type: int
+    default: 10
+    description: Threshold for leftward movement
+    
+  ball-threshold-right:
+    type: int
+    default: 10
+    description: Threshold for rightward movement

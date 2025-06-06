@@ -1,5 +1,6 @@
 #pragma once
 
+#include "ball_action.h"
 /**
  * @file pixart.h
  *
@@ -28,6 +29,7 @@ struct pixart_data {
 
     bool                         ready; // whether init is finished successfully
     int                          err; // error code during async init
+    struct ball_action_config    ball_config;  // Add this line
 };
 
 // device config data structure

@@ -1,7 +1,7 @@
 #pragma once
 
+#include <zephyr/kernel.h>
 #include <zephyr/input/input.h>
-#include <zmk/event_manager.h>
 
 // Ball action definitions
 struct ball_event {
@@ -15,13 +15,16 @@ struct ball_action_config {
     struct ball_event down;
     struct ball_event left;
     struct ball_event right;
+    bool enabled;
 };
 
-// Ball event data structure
+// Simplified motion event structure
 struct ball_motion_event {
-    struct zmk_event_header header;
     int16_t dx;
     int16_t dy;
 };
 
-ZMK_EVENT_DECLARE(ball_motion_event);
+typedef void (*ball_motion_callback_t)(const struct ball_motion_event *evt);
+
+// Function declaration
+void ball_motion_register_callback(ball_motion_callback_t callback);
