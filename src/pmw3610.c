@@ -13,6 +13,7 @@
 #include <zmk/keymap.h>
 #include <zmk/events/activity_state_changed.h>
 #include "pmw3610.h"
+#include <ball_action.h>
 
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(pmw3610, CONFIG_PMW3610_LOG_LEVEL);
@@ -379,6 +380,32 @@ static void pmw3610_async_init(struct k_work *work) {
     }
 }
 
+static void process_ball_action(const struct device *dev, int16_t dx, int16_t dy) {
+    struct pixart_data *data = dev->data;
+    
+    if (!data->ball_action_enabled) {
+        return;
+    }
+
+    if (abs(dx) >= data->ball_config.right.threshold && dx > 0) {
+        input_report_key(dev, data->ball_config.right.keycode, 1, true, K_NO_WAIT);
+        input_report_key(dev, data->ball_config.right.keycode, 0, true, K_NO_WAIT);
+    } else if (abs(dx) >= data->ball_config.left.threshold && dx < 0) {
+        input_report_key(dev, data->ball_config.left.keycode, 1, true, K_NO_WAIT);
+        input_report_key(dev, data->ball_config.left.keycode, 0, true, K_NO_WAIT);
+    }
+
+    if (abs(dy) >= data->ball_config.up.threshold && dy < 0) {
+        input_report_key(dev, data->ball_config.up.keycode, 1, true, K_NO_WAIT);
+        input_report_key(dev, data->ball_config.up.keycode, 0, true, K_NO_WAIT);
+    } else if (abs(dy) >= data->ball_config.down.threshold && dy > 0) {
+        input_report_key(dev, data->ball_config.down.keycode, 1, true, K_NO_WAIT);
+        input_report_key(dev, data->ball_config.down.keycode, 0, true, K_NO_WAIT);
+    }
+
+    ZMK_EVENT_RAISE(new_ball_motion_event(dx, dy));
+}
+
 static int pmw3610_report_data(const struct device *dev) {
     struct pixart_data *data = dev->data;
     const struct pixart_config *config = dev->config;
@@ -469,11 +496,16 @@ static int pmw3610_report_data(const struct device *dev) {
 #endif
         dx = 0;
         dy = 0;
-        if (have_x) {
-            input_report(dev, config->evt_type, config->x_input_code, rx, !have_y, K_NO_WAIT);
-        }
-        if (have_y) {
-            input_report(dev, config->evt_type, config->y_input_code, ry, true, K_NO_WAIT);
+
+        process_ball_action(dev, rx, ry);
+
+        if (!data->ball_action_enabled) {
+            if (have_x) {
+                input_report(dev, config->evt_type, config->x_input_code, rx, !have_y, K_NO_WAIT);
+            }
+            if (have_y) {
+                input_report(dev, config->evt_type, config->y_input_code, ry, true, K_NO_WAIT);
+            }
         }
     }
 
@@ -558,6 +590,15 @@ static int pmw3610_init(const struct device *dev) {
 
     k_work_schedule(&data->init_work, K_MSEC(async_init_delay[data->async_init_step]));
 
+    struct pixart_data *data = dev->data;
+    data->ball_action_enabled = false;
+    
+    // デフォルトのBALL_ACTION設定
+    data->ball_config.up.threshold = 10;
+    data->ball_config.down.threshold = 10;
+    data->ball_config.left.threshold = 10;
+    data->ball_config.right.threshold = 10;
+    
     return err;
 }
 
