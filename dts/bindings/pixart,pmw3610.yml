@@ -15,12 +15,43 @@ properties:
     description: "CPI value (Range: 200 - 3200, Step: 200)"
   evt-type:
     type: int
-    required: true
   x-input-code:
     type: int
-    required: true
   y-input-code:
     type: int
-    required: true
   force-awake:
     type: boolean
+  scroll-layers:
+    type: array
+    description: "Layers where the sensor acts as a scroll wheel"
+  snipe-layers:
+    type: array
+    description: "Layers where the sensor uses snipe mode (lower CPI)"
+  ball-actions:
+    type: phandle-array
+    description: "References to child nodes containing ball action configurations"
+
+child-binding:
+  description: "Ball action configuration for specific layers"
+  properties:
+    compatible:
+      type: string
+      const: "zmk,behavior-ball-action"
+    label:
+      type: string
+      description: "Human readable string describing the ball action"
+    layers:
+      type: array
+      description: "Layers on which the behavior will be invoked"
+    bindings:
+      type: phandle-array
+      description: "Behaviors to be invoked when ball movement exceeds the tick threshold"
+    tick:
+      type: int
+      description: "Required ticks to trigger a ball action. Higher values require more movement."
+    wait-ms:
+      type: int
+      description: "Time to wait before triggering the next behavior binding"
+    tap-ms:
+      type: int
+      description: "Time between press and release events on a triggered binding"

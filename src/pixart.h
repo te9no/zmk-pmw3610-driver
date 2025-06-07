@@ -15,6 +15,9 @@
 extern "C" {
 #endif
 
+enum pixart_input_mode { MOVE = 0, SCROLL, SNIPE, BALL_ACTION };
+
+
 /* device data structure */
 struct pixart_data {
     const struct device          *dev;
@@ -28,6 +31,22 @@ struct pixart_data {
 
     bool                         ready; // whether init is finished successfully
     int                          err; // error code during async init
+    
+    int32_t ball_action_delta_x;
+    int32_t ball_action_delta_y;
+    enum pixart_input_mode      input_mode;
+    bool                        input_mode_changed;
+
+};
+
+struct ball_action_cfg {
+    size_t bindings_len;
+    struct zmk_behavior_binding *bindings;
+    uint8_t layers[ZMK_KEYMAP_LAYERS_LEN];
+    size_t layers_len;
+    uint32_t tick;
+    uint32_t wait_ms;
+    uint32_t tap_ms;
 };
 
 // device config data structure
@@ -39,6 +58,14 @@ struct pixart_config {
     uint8_t x_input_code;
     uint8_t y_input_code;
     bool force_awake;
+    
+    uint8_t *scroll_layers;
+    size_t scroll_layers_len;
+    uint8_t *snipe_layers;
+    size_t snipe_layers_len;
+    
+    struct ball_action_cfg **ball_actions;
+    size_t ball_actions_len;
 };
 
 #ifdef __cplusplus
