@@ -117,7 +117,6 @@ enum pmw3610_attribute {
 
 	/** Sampling frequency time during REST3 mode [ms]. */
 	PMW3610_ATTR_REST3_SAMPLE_TIME,
-
 };
 
 #ifdef __cplusplus

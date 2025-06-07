@@ -1,0 +1,23 @@
+description: Ball Action Behavior
+
+compatible: "zmk,behavior-ball-action"
+
+properties:
+  bindings:
+    type: phandle-array
+    required: true
+  up-keycode:
+    type: int
+    required: true
+  down-keycode:
+    type: int
+    required: true
+  left-keycode:
+    type: int
+    required: true
+  right-keycode:
+    type: int
+    required: true
+  threshold:
+    type: int
+    default: 10

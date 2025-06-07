@@ -94,6 +94,24 @@ config PMW3610_REST3_SAMPLE_TIME_MS
     help
       Default REST2 mode sample period in millisecond.
 
+menu "Ball Action Configuration"
+    depends on INPUT_PMW3610
+
+config PMW3610_BALL_ACTION
+    bool "Enable ball action support"
+    default n
+    help
+        Enable support for ball action (trackball to key conversion)
+
+config PMW3610_BALL_ACTION_THRESHOLD
+    int "Default threshold for ball actions"
+    default 10
+    depends on PMW3610_BALL_ACTION
+    help
+        Default threshold value for ball action activation
+
+endmenu
+
 module = PMW3610
 module-str = PMW3610
 source "${ZEPHYR_BASE}/subsys/logging/Kconfig.template.log_config"
